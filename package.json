@@ -1,0 +1,19 @@
+{
+  "name": "rcm-core-client",
+  "version": "1.0.0",
+  "description": "Client side library for connecting to RCMs industrial IoT platform.",
+  "main": "MMG2CoreAPI.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DVR-Ltd/rcm-core-client.git"
+  },
+  "author": "Gary Ott",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/DVR-Ltd/rcm-core-client/issues"
+  },
+  "homepage": "https://github.com/DVR-Ltd/rcm-core-client#readme"
+}
