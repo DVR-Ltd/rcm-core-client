@@ -1422,6 +1422,8 @@ const
 					if (msg.state === "OK") {
 						LDMinsertWithoutDuplication(self, msg.data[self.options.readAPIArrayField], self.data);
 						self.data = msg.data[self.options.readAPIArrayField];
+
+						self.emit("init", self.data);
 					}
 					else if (self.options.onFailure) {
 						self.options.onFailure(msg.additional);
@@ -1489,7 +1491,7 @@ class LiveDataManager extends EventEmitter {
 			//"deleteAPI",       //API to call to delete an entry.
 
 			//"params",          //Object containing API request parameters for initial request (can be an empty object)
-			"onUpdate"         //Function to call when there is an update to the data.
+			//"onUpdate"         //Function to call when there is an update to the data.
 			//"onSuccess",       //Function to call when publication of new data succeeds.
 			//"onFailure"        //Function to call when publication of new data fails.
 
@@ -1501,6 +1503,7 @@ class LiveDataManager extends EventEmitter {
 		});
 
 		this.options.params    = this.options.params    || {};
+		this.options.onUpdate  = this.options.onUpdate  || noop;
 		this.options.onSuccess = this.options.onSuccess || noop;
 		this.options.onFailure = this.options.onFailure || noop;
 
