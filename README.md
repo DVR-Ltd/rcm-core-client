@@ -215,9 +215,38 @@ myConnection.logOff(
 ```
 
 
-##### getMaintainedList(<enum: this.DATA_SETS>,  <object: parameters>, <function: callBack>)
+##### getMaintainedList(<enum: dataSetIdentifier>[,  <object: parameters>[, <function: callBack>]])
 
-Returns an instance of `LiveDataManager` configured for the data set you want.
+Returns an instance of `LiveDataManager`.
+
+`dataSetIdentifier` is used to set most of the configurable properties of the `LiveDataManager` instance. See table below.
+
+`parameters` is passed to the read API in full. Some properties of `parameters` will be used to configure subscriptions.
+
+`callBack` shall be used to set the `onUpdate` property of the `options` object when constructing the `LiveDataManger`. This function is called whenever data is received. You may wish to omit `callBack` in favour of using [events](#LDMEvents) instead.
+
+`dataSetIdentifier` must be one of the following:
+
+|Enumerator|Notes|
+|-|-|
+|MMG2CoreAPI.DATA_SETS.SITES|No `parameters` required.|
+|MMG2CoreAPI.DATA_SETS.USERS|No `parameters` required.|
+|MMG2CoreAPI.DATA_SETS.USERGROUPS|No `parameters` required.|
+|MMG2CoreAPI.DATA_SETS.TEMPLATES|No `parameters` required.|
+|MMG2CoreAPI.DATA_SETS.SITE_ICONS|`parameters` must contain `locationID` property.|
+|MMG2CoreAPI.DATA_SETS.LOCATIONS|`parameters` must contain `locationID` property.|
+|MMG2CoreAPI.DATA_SETS.BOM_ENTRIES|`parameters` must contain `locationID` property.|
+|MMG2CoreAPI.DATA_SETS.REPORTS|`parameters` must contain `locationID` property.|
+|MMG2CoreAPI.DATA_SETS.SCHEDULES|`parameters` must contain `locationID` property.|
+|MMG2CoreAPI.DATA_SETS.DEPLOYABLE|`parameters` must contain `locationID` property.|
+|MMG2CoreAPI.DATA_SETS.UNDEPLOYABLE|`parameters` must contain `locationID` property.|
+|MMG2CoreAPI.DATA_SETS.ALARMS|`parameters` must contain `locationID` property.|
+|MMG2CoreAPI.DATA_SETS.PREPAY_CODES|`parameters` must contain `service` property.|
+|MMG2CoreAPI.DATA_SETS.CONTROL_HISTORY|`parameters` must contain `locationID` property.|
+
+
+
+
 
 ```JavaScript
 //Assuming myConnection to have already been created and a successful call to myConnection.logOn() to have been made.
