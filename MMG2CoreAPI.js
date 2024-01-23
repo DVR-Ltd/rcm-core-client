@@ -354,7 +354,7 @@ const
 			case DATA_SETS.REPORTS:
 				return {
 					idField:           "reportID",           				
-					subscribeTopics:   ["SRV/report/" + $rootScope.site.locationID],
+					subscribeTopics:   ["SRV/report/" + params.locationID],
 					readAPI:           "/API/report/getScheduledReports",
 					deleteAPI:         "/API/report/deleteReport",
 					readAPIArrayField: "report"
@@ -424,6 +424,7 @@ const
 				};
 
 			case DATA_SETS.STATUS:
+				console.log("DATA_SETS.STATUS not supported (yet?).");
 				return {
 					idField:           "locationID",
 					readAPIArrayField: "status",
