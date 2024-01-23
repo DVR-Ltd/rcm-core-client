@@ -95,11 +95,13 @@ This library consists of three classes:
 
 ### The MMG2CoreAPI Class
 
-All connections to MMG2 servers must be authenticated. There are two supported methods of authentication.
+This library supports both methods of authentication (API key and session token) offered by the MMG2 Core API. You will need to consider which approach works best for your use case.
 
 For situations like server side applications where credentials maybe the same for all installations, API key authentication is usually the preferred method.
 
 For situations like mobile or desktop applications where it is assumed that attackers can gain access to the application and extract any credentails encoded within it, session token authentication is supported. In this scenario, the end user is expected to enter their own credentials in order to log in. When they log on successfully, a token is given which is subsequently sent in the headers of all API calls.
+
+
 
 #### Methods
 
@@ -114,30 +116,130 @@ For situations like mobile or desktop applications where it is assumed that atta
 `password`|False|String|The password if using session token authentication.||
 
 
+```JavaScript
+//Example
+const { MMG2CoreAPI } = require("rcm-core-client");
+
+let myConnection = new MMG2CoreAPI(
+		{
+			"domain": "example_domain.com",
+			"username": "username",
+			"password": "password"
+		}
+	);
+```
+
+
 
 ##### setKey(<string: key>)
 
 Use only if using API key authentication.
+
+```JavaScript
+const { MMG2CoreAPI } = require("rcm-core-client");
+
+let myConnection = new MMG2CoreAPI(
+		{
+			"domain": "example_domain.com"
+		}
+	);
+
+myConnection.on("error", (err) => {
+	console.log(err);
+});
+
+myConnection.setKey("MY_API_KEY");
+
+//Use connection...
+
+```
 
 
 ##### logOn(<function: onSuccess>, <function: onFailure>)
 
 Use only if using session token authentication.
 
+```JavaScript
+//Example
+const { MMG2CoreAPI } = require("rcm-core-client");
+
+let myConnection = new MMG2CoreAPI(
+		{
+			"domain": "example_domain.com",
+			"username": "username",
+			"password": "password"
+		}
+	);
+
+myConnection.on("error", (err) => {
+	console.log(err);
+});
+
+myConnection.logOn(
+	() => {
+		console.log("Log on successful!");
+	},
+
+	(err) => {
+		//Log on failed!
+		throw err;
+	}
+);
+```
+
 
 ##### logOff(<function: onSuccess>, <function: onFailure>)	
 
 Use only if using session token authentication.
 
+```JavaScript
+//Assuming myConnection to have already been created and a successful call to myConnection.logOn() to have been made.
+
+myConnection.logOff(
+	() => {
+		console.log("Log off successful!");
+	},
+
+	(err) => {
+		//Log on failed!
+		throw err;
+	}
+);
+```
+`
 
 ##### getMaintainedList(<enum: this.DATA_SETS>,  <object: parameters>, <function: callBack>)
 
 Returns an instance of `LiveDataManager` configured for the data set you want.
 
+```JavaScript
+myConnection.getMaintainedList(
+	myConnection.DATA_SETS.LOCATIONS,
+	
+	{
+		locationID: 1      //A known locationID for a site 
+	},
+
+	(fullSet, changes) => {
+		if (!changes) {
+			//First run
+			//
+		}
+		else {
+			//Respond to an update
+
+		}
+	}
+);
+```
+
 
 ##### request(<object: context>)
 
 Make an API call. For most uses, use a `LiveDataManager` instance instead.
+
+
+
 
 
 ##### registerPushHandler(<string[]: topics>, <function: callBack>)
@@ -148,6 +250,14 @@ Register a callback for particular events. For most uses, use a `LiveDataManager
 ##### unregisterPushHandler(<string[]: topics>, <function: callBack>)
 
 Remove a callback for a particular event. For most uses, use a `LiveDataManager` instance instead.
+
+#### Events
+
+##### `error` Event
+
+##### `connectionRestore` Event
+
+
 
 
 #### Example
@@ -164,8 +274,8 @@ const
 
 let myConnection = new MMG2CoreAPI(
 		{
-			domain:   "example.dvr-rcm.co.uk",
-			username: "John.Smith",
+			domain:   "my_example_domain.com",
+			username: "username",
 			password: "password"
 		}
 	);
@@ -210,16 +320,20 @@ const {
 	} = require("rcm-core-client");
 
 
-let myConnection = new MMG2CoreAPI({
-		domain: "example.dvr-rcm.co.uk",
-		username: ""
-	});
+let myConnection = new MMG2CoreAPI(
+		{
+			domain: "my_example_domain.com"
+		}
+	);
 
 myConnection.on("error", (err) => {
 	console.log(err);
 });
 
 myConnection.setKey("my_API_KEY");
+
+
+//Do something with myConnection
 
 ```
 
@@ -231,14 +345,15 @@ The `LiveDataManager` class is used to keep an always up to date set of data in 
 
 The recommended way of obtaining an instance of the `LiveDataManager` class is to request it from the `getMaintainedList()` method of your instance of `MMG2CoreAPI`.
 
-#### Methods
-
-##### constructor(<MMG2CoreAPI: connection>, <object: options>)
-
-
 |:memo:|PLEASE NOTE: It is rarely necessary to understand how to construct a `LiveDataManager`. The `MMG2CoreAPI.getMaintainedList()` method will usually do what you require.|
 |-|-|
 
+|:memo:|PLEASE NOTE: LiveDataManager avoids breaking pointers. The same array is used to hold the data set from constructon to destruction and when entities are updated, changes are made to the original objects within the array. This means you should be able to safely use this library with your MVC framework of choice. |
+|-|-|
+
+#### Methods
+
+##### constructor(<MMG2CoreAPI: connection>, <object: options>)
 
 `connection` must be a valid instance of the `MMG2CoreAPI` class.
 
@@ -255,13 +370,15 @@ The recommended way of obtaining an instance of the `LiveDataManager` class is t
 |`createAPI`|False|String|The API end point used to add entities to the data set.|Required if you wish to call the `create()` method.|
 |`updateAPI`|False|String|The API end point used to modify entities to the data set.|Required if you wish to call the `update()` method.|
 |`deleteAPI`|False|String|The API end point used to delete entities to the data set.|Required if you wish to call the `delete()` method.|
-|`onUpdate`|False|Function|Callback called upon ALL updates. For lower level functionality, see `events`.|Function with arguments: <object[]: full_data_set>, <object[]: changed_only>.|
+|`onUpdate`|False|Function|Callback called upon ALL updates. Using `onUpdate()` callback may not be optimal in every case, for which the [`LiveDataManager` events](#LDMEvents) exist as an alternative.|Function with arguments: <object[]: full_data_set>, <object[]: changed_entries_only>.|
 
 
 
 ##### create(<object: newData>, <function: onSuccess>, <function: onFailure>)
 
 This method calls the API to create a new entry in the dataset.
+
+Place API parameters in `newData`.
 
 ##### read()
 
@@ -271,21 +388,36 @@ This method returns the complete data set from memory without using an API call.
 
 This method calls the API to create a new entry in the dataset. The API will publish the update resulting in the 
 
+Place API parameters in `newData`.
+
 ##### delete(<object: newData>, <function: onSuccess>, <function: onFailure>)
 
 This method calls the API to delete an entry from the dataset.
 
+Place API parameters in `newData`.
 
 ##### reset(<object: params>, <string[]: newTopics>)
 
 The `reset()`  command cause the data to be re-queried with new input parameters.
 
+Place API parameters in `params`.
+
+
 ##### die()
 
 The `die()` method is recommended for use when the class is no longer needed. It will cause the class to remove references to data and unregister all handlers. 
 
+<a name="LDMEvents"/>
 
 #### Events
+
+##### `init` Event
+
+This event is called after the initial retreival of the data set. Calling the `reset()` method will result in the event being triggered again.
+
+
+
+
 
 ##### `beforeCreate` Event
 
