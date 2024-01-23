@@ -127,6 +127,13 @@ let myConnection = new MMG2CoreAPI(
 			"password": "password"
 		}
 	);
+
+myConnection.on("error", (err) => {
+	console.log(err);
+});
+
+//TO DO: Log on and use API
+
 ```
 
 
@@ -150,8 +157,8 @@ myConnection.on("error", (err) => {
 
 myConnection.setKey("MY_API_KEY");
 
-//Use connection...
-
+//TO DO: Use API
+//
 ```
 
 
@@ -206,28 +213,36 @@ myConnection.logOff(
 	}
 );
 ```
-`
+
 
 ##### getMaintainedList(<enum: this.DATA_SETS>,  <object: parameters>, <function: callBack>)
 
 Returns an instance of `LiveDataManager` configured for the data set you want.
 
 ```JavaScript
+//Assuming myConnection to have already been created and a successful call to myConnection.logOn() to have been made.
+
+let
+	logLocation = (loc) => {
+		console.log(loc.locationID, loc.locationName);
+	};
+
 myConnection.getMaintainedList(
 	myConnection.DATA_SETS.LOCATIONS,
 	
 	{
-		locationID: 1      //A known locationID for a site 
+		locationID: 1      //A known locationID for a site
 	},
 
 	(fullSet, changes) => {
 		if (!changes) {
 			//First run
-			//
+			fullSet.forEach(logLocation);
 		}
 		else {
 			//Respond to an update
-
+			console.log("Changes:");
+			changes.forEach(logLocation);
 		}
 	}
 );
@@ -239,7 +254,30 @@ myConnection.getMaintainedList(
 Make an API call. For most uses, use a `LiveDataManager` instance instead.
 
 
+```JavaScript
+//Assuming myConnection to have already been created and a successful call to myConnection.logOn() to have been made.
 
+//Makes a simple request for the same data as in the last example, but without registering for updates.
+myConnection.request({
+	resource: "/API/setup/getLocations",
+
+	params: {
+		locationID: 1
+	},
+
+	onSuccess: (res) => {
+		res.data.locations.forEach((loc) => {
+			console.log(loc.locationID, loc.locationName);
+		});
+	},
+
+	onFailure: (err, code) => {
+		console.log("Error occurred");
+		throw err;
+	}
+});
+
+```
 
 
 ##### registerPushHandler(<string[]: topics>, <function: callBack>)
@@ -247,95 +285,57 @@ Make an API call. For most uses, use a `LiveDataManager` instance instead.
 Register a callback for particular events. For most uses, use a `LiveDataManager` instance instead.
 
 
+
+```JavaScript
+//Assuming myConnection to have already been created and a successful call to myConnection.logOn() to have been made.
+
+let
+	myHandler = (siteData) => {
+
+		switch (siteData.crud) {
+
+			case myConnection.CRUD_TYPES.CREATE:
+				console.log("A new site was created");
+				break;
+
+			case myConnection.CRUD_TYPES.UPDATE:
+				console.log("A site was modified");
+				break;
+
+			case myConnection.CRUD_TYPES.DELETE:
+				console.log("A new site was deleted");
+				break;				
+		}
+	};
+
+myConnection.registerPushHandler(["SRV/sites"], myHandler);
+
+```
+
+
+
 ##### unregisterPushHandler(<string[]: topics>, <function: callBack>)
 
 Remove a callback for a particular event. For most uses, use a `LiveDataManager` instance instead.
 
+```JavaScript
+//Continuing on from the example for the registerPushHandler() method.
+myConnection.unregisterPushHandler(["SRV/sites"], myHandler);
+```
+
+
 #### Events
 
 ##### `error` Event
+
+The MMG2CoreAPI class will do all it can to restore a connection.
 
 ##### `connectionRestore` Event
 
 
 
 
-#### Example
 
-##### Session Authentication Example
-
-```JavaScript
-const
-	{
-		MMG2CoreAPI,
-		LiveDataManager
-	} = require("rcm-core-client");
-
-
-let myConnection = new MMG2CoreAPI(
-		{
-			domain:   "my_example_domain.com",
-			username: "username",
-			password: "password"
-		}
-	);
-
-myConnection.on("error", (err) => {
-	console.log(err);
-});
-
-myConnection.logOn(
-	() => {
-		//On Success
-		console.log("Logged on");
-				
-		myConnection.logOff(
-			() => {
-				console.log("Logged off");
-			},
-
-			() => {
-				console.log("Failed to log off.");
-			}
-		);
-	},
-
-	(err) => {
-		//On Failure
-		console.log("Authentication failed.");
-		console.log(err);
-	}
-);
-
-```
-
-
-##### API Key Authentication Example
-
-
-```JavaScript
-const {
-		MMG2CoreAPI,
-		LiveDataManager
-	} = require("rcm-core-client");
-
-
-let myConnection = new MMG2CoreAPI(
-		{
-			domain: "my_example_domain.com"
-		}
-	);
-
-myConnection.on("error", (err) => {
-	console.log(err);
-});
-
-myConnection.setKey("my_API_KEY");
-
-
-//Do something with myConnection
-
-```
 
 <a name="LiveDataManager"/>
 
@@ -453,7 +453,6 @@ This event is called when notification of removal of an entry from the data set 
 |preventDefault|Function|Call to prevent the in-memory array being manipulated by this change and the onUpdate function being called.|
 
 
-#### Example
 
 <a name="JobQueue"/>
 
@@ -461,8 +460,6 @@ This event is called when notification of removal of an entry from the data set 
 
 
 #### Methods
-
-#### Example
 
 
 
