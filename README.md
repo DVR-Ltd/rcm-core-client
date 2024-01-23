@@ -249,6 +249,8 @@ Returns an instance of `LiveDataManager`.
 
 
 ```JavaScript
+//Example
+
 //Assuming myConnection to have already been created and a successful call to myConnection.logOn() to have been made.
 
 let
@@ -314,12 +316,43 @@ myConnection.request({
 Register a callback for particular events. For most uses, use a `LiveDataManager` instance instead.
 
 
-
 ```JavaScript
+
+//EXAMPLE 1: Subscribing to readings.
+
 //Assuming myConnection to have already been created and a successful call to myConnection.logOn() to have been made.
 
 let
-	myHandler = (siteData) => {
+	myMeterLocations = [10, 11, 12, 13],   //Expected that you'll have locationID values from a previous API call
+
+	h_readingsHandler = (locationID) => {
+		return (readings) => {
+			console.log("Reading for " + locationID + ": " + readings.value);
+
+			console.log("Hardware state for " + locationID + ": " + readings.hwState);
+		};
+	};
+
+myMeterLocations.forEach((locationID) => {
+	myConnection.registerPushHandler(
+		"SRV/readings/" + locationID,
+
+		h_readingsHandler(locationID)
+	);
+});
+
+```
+
+
+
+```JavaScript
+
+//EXAMPLE 2: Subscribing to sites (NOTE: Using an instance of LiveDataManager is preferred over this code)
+
+//Assuming myConnection to have already been created and a successful call to myConnection.logOn() to have been made.
+
+let
+	sitesHandler = (siteData) => {
 
 		switch (siteData.crud) {
 
@@ -337,9 +370,11 @@ let
 		}
 	};
 
-myConnection.registerPushHandler(["SRV/sites"], myHandler);
+
+myConnection.registerPushHandler(["SRV/sites"], sitesHandler);
 
 ```
+
 
 
 
@@ -349,7 +384,7 @@ Remove a callback for a particular event. For most uses, use a `LiveDataManager`
 
 ```JavaScript
 //Continuing on from the example for the registerPushHandler() method.
-myConnection.unregisterPushHandler(["SRV/sites"], myHandler);
+myConnection.unregisterPushHandler(["SRV/sites"], sitesHandler);
 ```
 
 
