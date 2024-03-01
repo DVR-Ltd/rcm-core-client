@@ -1518,8 +1518,7 @@ class LiveDataManager extends EventEmitter {
 	}
 
 	create(newData, onSuccess, onFailure) {
-
-		if (!options.createAPI) {
+		if (!this.options.createAPI) {
 			throw new Error("LiveDataManager.createAPI(): You have not defined a create API.");
 		}
 
